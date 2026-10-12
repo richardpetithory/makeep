@@ -6,19 +6,20 @@ import SwiftUI
 ///   --debug-login    open the Google sign-in window
 ///   --debug-window   show the popover UI with sample notes in a regular window, so it can be
 ///                    captured with `screencapture -l <window number>` (printed to stderr)
+///   --debug-settings the same window, opened on the Settings screen
 enum DebugTools {
     private static var retained: [AnyObject] = []
     private static let arguments = CommandLine.arguments
 
     static var isActive: Bool {
-        arguments.contains("--debug-login") || arguments.contains("--debug-window")
+        arguments.contains("--debug-login") || arguments.contains("--debug-window") || arguments.contains("--debug-settings")
     }
 
     static func handleLaunchArguments() {
         guard isActive else { return }
         Task {
             try? await Task.sleep(for: .seconds(1))
-            if arguments.contains("--debug-window") { showPreviewWindow() }
+            if arguments.contains("--debug-window") || arguments.contains("--debug-settings") { showPreviewWindow() }
             if arguments.contains("--debug-login") { _ = try? await GoogleWebLogin().run() }
         }
     }
@@ -28,7 +29,8 @@ enum DebugTools {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 540),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "MaKeep Preview"
-        window.contentView = NSHostingView(rootView: RootView().environment(store))
+        let route: Route? = arguments.contains("--debug-settings") ? .settings : nil
+        window.contentView = NSHostingView(rootView: RootView(initialRoute: route).environment(store))
         window.isReleasedWhenClosed = false
         window.center()
         window.orderFrontRegardless()

@@ -10,6 +10,10 @@ struct RootView: View {
     @Environment(NoteStore.self) private var store
     @State private var route: Route?
 
+    init(initialRoute: Route? = nil) {
+        _route = State(initialValue: initialRoute)
+    }
+
     var body: some View {
         Group {
             if !store.isSignedIn {
