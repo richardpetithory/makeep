@@ -146,7 +146,8 @@ private struct ChecklistEditor: View {
                 }
             }
         }
-        .onAppear { focused = items.last(where: { !$0.checked })?.id }
+        // Only auto-focus a blank item (new lists): focusing a filled field selects all its text.
+        .onAppear { focused = items.last(where: { !$0.checked && $0.text.isEmpty })?.id }
     }
 
     private func row(_ item: ListItem) -> some View {
