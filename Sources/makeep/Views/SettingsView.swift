@@ -32,6 +32,11 @@ struct SettingsView: View {
                 }
             }
 
+            GroupBox("General") {
+                LaunchAtLoginToggle()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             Button("Sign out", role: .destructive) {
                 store.signOut()
                 onClose()
