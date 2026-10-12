@@ -5,12 +5,42 @@ A macOS menu bar app for quickly adding and editing Google Keep notes and lists.
 ## Build & run
 
 ```sh
-make run       # build build/MaKeep.app and launch it
+make run       # build, install to /Applications/MaKeep.app, and launch
 make test      # unit tests
-make install   # copy to /Applications
+make stop      # quit the running app
 ```
 
 Requires macOS 14+ and Xcode / Swift 6.2+.
+
+Run `scripts/create-signing-cert.sh` once to create a local "MaKeep Local Signing"
+certificate. Builds signed with it keep the same identity, so Keychain "Always Allow"
+survives rebuilds. Without it, builds are signed ad-hoc and macOS asks again after every
+build. To remove it: `security delete-identity -c "MaKeep Local Signing"`.
+
+Debug builds accept `--debug-window` (the popover UI with sample notes in a regular window)
+and `--debug-login` (opens the Google sign-in window): `.build/debug/makeep --debug-window`.
+
+## Releases
+
+MaKeep is distributed outside the App Store as a Developer ID–signed, notarized app.
+(The Mac App Store would require sandboxing and would very likely reject the unofficial
+Keep API and the Keep-like name and branding.)
+
+```sh
+make release-check            # next version + prerequisite check, changes nothing
+make release                  # bump version, universal build, sign, notarize, staple → dist/MaKeep-x.y.z.zip
+make release ARGS=--publish   # …and commit the bump, tag, push, and create a GitHub release
+```
+
+The bump in `Resources/Info.plist` (marketing version patch + build number) is rolled back
+if the release is canceled or fails before notarization succeeds. One-time setup (also
+documented at the top of `scripts/release.sh`):
+
+1. **Developer ID certificate**: Xcode → Settings → Accounts → your team → Manage
+   Certificates → + → *Developer ID Application* (account holder only).
+2. **Notarization credentials**:
+   `xcrun notarytool store-credentials makeep-notary --apple-id <apple id> --team-id 47K8399UUS`,
+   using an app-specific password from account.apple.com.
 
 ## Backends
 
@@ -45,7 +75,7 @@ with gpsoauth) and paste it under **Advanced**.
 ## Layout
 
 ```
-Sources/MaKeep/
+Sources/makeep/
   App/            MenuBarExtra entry point
   Model/          Note, NoteStore (UI state + backend selection)
   Backends/

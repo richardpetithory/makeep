@@ -2,18 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "MaKeep",
+    name: "makeep",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "MaKeep",
-            path: "Sources/MaKeep",
+            name: "makeep",
+            path: "Sources/makeep",
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
         .testTarget(
-            name: "MaKeepTests",
-            dependencies: ["MaKeep"],
-            path: "Tests/MaKeepTests",
+            name: "makeepTests",
+            dependencies: ["makeep"],
+            path: "Tests/makeepTests",
             swiftSettings: [.defaultIsolation(MainActor.self)]
         ),
     ]

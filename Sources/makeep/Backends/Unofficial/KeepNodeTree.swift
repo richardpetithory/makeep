@@ -54,7 +54,8 @@ nonisolated struct KeepNodeTree {
             title: node["title"]?.stringValue ?? "",
             content: content,
             isPinned: node["isPinned"]?.boolValue ?? false,
-            updated: node["timestamps"]?["updated"]?.stringValue.flatMap(KeepDate.parse) ?? .distantPast
+            // Editing an item may only bump that item's timestamps, so use the latest across the note.
+            updated: ([node] + items).compactMap(Self.modified).max() ?? .distantPast
         )
     }
 
@@ -227,6 +228,12 @@ nonisolated struct KeepNodeTree {
     private static func touch(_ node: inout JSONValue, _ timestamp: String) {
         setTimestamp(&node, "updated", timestamp)
         setTimestamp(&node, "userEdited", timestamp)
+    }
+
+    private static func modified(_ node: JSONValue) -> Date? {
+        ["updated", "userEdited"]
+            .compactMap { node["timestamps"]?[$0]?.stringValue.flatMap(KeepDate.parse) }
+            .max()
     }
 
     static func isTrashed(_ node: JSONValue) -> Bool {

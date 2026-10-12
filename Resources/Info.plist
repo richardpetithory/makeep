@@ -7,9 +7,11 @@
     <key>CFBundleDisplayName</key>
     <string>MaKeep</string>
     <key>CFBundleIdentifier</key>
-    <string>dev.makeep.MaKeep</string>
+    <string>dev.makeep.makeep</string>
     <key>CFBundleExecutable</key>
-    <string>MaKeep</string>
+    <string>makeep</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

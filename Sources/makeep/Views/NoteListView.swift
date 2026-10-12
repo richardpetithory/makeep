@@ -1,11 +1,14 @@
 import SwiftUI
 
 struct NoteListView: View {
+    private enum Field { case quickAdd, search }
+
     @Environment(NoteStore.self) private var store
     @Binding var route: Route?
     @State private var quickNote = ""
     @State private var search = ""
-    @FocusState private var quickAddFocused: Bool
+    @State private var isSearching = false
+    @FocusState private var focus: Field?
 
     private var filtered: [Note] {
         guard !search.isEmpty else { return store.notes }
@@ -13,24 +16,29 @@ struct NoteListView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        // Explicit spacing so each visible gap comes out even (~14pt, allowing for the space built
+        // into icon and text glyphs).
+        VStack(spacing: 0) {
             header
-            quickAdd
-            TextField("Search", text: $search)
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal, 12)
-            ErrorBanner()
+                .padding(.top, 13)
+                .padding(.bottom, 13)
+            if isSearching { searchBar } else { quickAdd }
+            if store.errorMessage != nil {
+                ErrorBanner().padding(.top, 12)
+            }
+            Divider().padding(.top, 14)
             noteList
         }
-        .padding(.top, 10)
-        .onAppear { quickAddFocused = true }
     }
 
     private var header: some View {
-        HStack {
+        HStack(spacing: 14) {
             Text("MaKeep").font(.headline)
             if store.isLoading { ProgressView().controlSize(.small) }
             Spacer()
+            Button { isSearching ? closeSearch() : (isSearching = true) } label: { Image(systemName: "magnifyingglass") }
+                .help("Search (⌘F)")
+                .keyboardShortcut("f")
             Button { route = .new(.newText()) } label: { Image(systemName: "square.and.pencil") }
                 .help("New note")
             Button { route = .new(.newList()) } label: { Image(systemName: "checklist") }
@@ -42,14 +50,16 @@ struct NoteListView: View {
                 .help("Settings")
         }
         .buttonStyle(.borderless)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
     }
 
     private var quickAdd: some View {
         TextField("Take a note… (Return to save)", text: $quickNote)
             .textFieldStyle(.roundedBorder)
-            .focused($quickAddFocused)
-            .padding(.horizontal, 12)
+            .controlSize(.large)
+            .focused($focus, equals: .quickAdd)
+            .onAppear { focus = .quickAdd }
+            .padding(.horizontal, 16)
             .onSubmit {
                 let text = quickNote.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !text.isEmpty else { return }
@@ -58,10 +68,36 @@ struct NoteListView: View {
             }
     }
 
+    private var searchBar: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField("Search notes", text: $search)
+                .textFieldStyle(.plain)
+                .focused($focus, equals: .search)
+                .onAppear { focus = .search }
+                .onExitCommand(perform: closeSearch)
+            Button(action: closeSearch) { Image(systemName: "xmark.circle.fill") }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .help("Close search (Esc)")
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 30)
+        .background(.quaternary.opacity(0.6), in: .rect(cornerRadius: 7))
+        .padding(.horizontal, 16)
+    }
+
+    private func closeSearch() {
+        search = ""
+        isSearching = false  // The quick-add field takes focus again when it reappears.
+    }
+
     private var noteList: some View {
         List {
             ForEach(filtered) { note in
                 NoteRow(note: note)
+                    // Titles carry extra space above their glyphs, so the bottom inset is larger.
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 13, trailing: 16))
                     .contentShape(.rect)
                     .onTapGesture { route = .edit(note) }
                     .contextMenu {
@@ -73,6 +109,8 @@ struct NoteListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .padding(.top, 3)
         .overlay {
             if filtered.isEmpty && !store.isLoading {
                 Text(search.isEmpty ? "No notes yet" : "No matches").foregroundStyle(.secondary)
@@ -85,7 +123,7 @@ private struct NoteRow: View {
     let note: Note
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if note.isList { Image(systemName: "checklist").foregroundStyle(.secondary) }
                 Text(note.title.isEmpty ? "Untitled" : note.title)
@@ -100,7 +138,6 @@ private struct NoteRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
         }
-        .padding(.vertical, 4)
     }
 }
 

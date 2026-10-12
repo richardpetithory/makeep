@@ -23,6 +23,13 @@ final class NoteStore {
         backend = account.flatMap(Self.makeBackend)
     }
 
+    #if DEBUG
+    init(previewBackend: KeepBackend) {
+        account = AccountConfig(kind: .unofficial, email: "preview@example.com")
+        backend = previewBackend
+    }
+    #endif
+
     // MARK: Notes
 
     func refreshIfStale() async {

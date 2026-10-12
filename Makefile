@@ -1,20 +1,32 @@
-.PHONY: app run test install clean
+.PHONY: app run install stop test release release-check clean
+
+BUILT = build.noindex/MaKeep.app
+INSTALLED = /Applications/MaKeep.app
 
 app:
 	./scripts/bundle.sh release
 
-run: app
-	-pkill -x MaKeep && while pgrep -x MaKeep >/dev/null; do sleep 0.1; done
-	open build/MaKeep.app
+# Installs to /Applications (the one copy Spotlight indexes) and launches it.
+run: app stop
+	rsync -a --delete $(BUILT)/ $(INSTALLED)/
+	touch $(INSTALLED)  # Nudge Finder/Spotlight to pick up icon changes.
+	open $(INSTALLED) || (sleep 1 && open $(INSTALLED))
+
+install: run
+
+# Matches bundled copies only, so debug preview runs (.build/debug/makeep) keep running.
+stop:
+	-pkill -f "MaKeep.app/Contents/MacOS/makeep"; while pgrep -f "MaKeep.app/Contents/MacOS/makeep" >/dev/null; do sleep 0.1; done
 
 test:
 	swift test
 
-install: app
-	-pkill -x MaKeep && while pgrep -x MaKeep >/dev/null; do sleep 0.1; done
-	rm -rf /Applications/MaKeep.app
-	cp -R build/MaKeep.app /Applications/
-	open /Applications/MaKeep.app
+# Signed + notarized build in dist/ (see scripts/release.sh). ARGS=--publish for a GitHub release.
+release:
+	./scripts/release.sh $(ARGS)
+
+release-check:
+	./scripts/release.sh --dry-run
 
 clean:
-	rm -rf .build build
+	rm -rf .build build.noindex dist

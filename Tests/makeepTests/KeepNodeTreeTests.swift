@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import MaKeep
+@testable import makeep
 
 /// A server snapshot shaped like real `notes/v1/changes` responses.
 private func sampleTree() throws -> KeepNodeTree {
@@ -50,6 +50,15 @@ private func node(_ changes: [JSONValue], _ id: String) -> JSONValue? {
         #expect(items.map(\.text) == ["Passport", "Charger", "Socks"])  // descending sortValue
         #expect(items.map(\.checked) == [true, false, false])
         #expect(notes[0].isPinned)
+    }
+
+    @Test func modifiedTimeIncludesItemEdits() throws {
+        var tree = try sampleTree()
+        // Checking an item elsewhere bumps only the item's timestamp.
+        tree.merge([["id": "c", "type": "LIST_ITEM", "parentId": "list1", "sortValue": "100", "text": "Socks",
+                     "checked": true, "timestamps": ["updated": "2026-03-01T00:00:00.000Z"]]])
+        #expect(tree.note(id: "list1")?.updated == KeepDate.parse("2026-03-01T00:00:00.000Z"))
+        #expect(tree.note(id: "note1")?.updated == KeepDate.parse("2026-01-02T00:00:00.000Z"))
     }
 
     @Test func noChangesProducesNoDirtyNodes() throws {

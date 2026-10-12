@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum Keychain {
-    private static let service = "dev.makeep.MaKeep"
+    private static let service = "dev.makeep.makeep"
 
     static func get(_ account: String) -> String? {
         let query: [String: Any] = [

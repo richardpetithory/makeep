@@ -73,7 +73,7 @@ struct NoteEditorView: View {
             }
             Spacer()
             if isSaving { ProgressView().controlSize(.small) }
-            Button("Done") { save() }
+            Button("Save") { save() }
                 .keyboardShortcut("s")
                 .buttonStyle(.borderedProminent)
         }
