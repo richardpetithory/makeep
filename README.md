@@ -2,6 +2,15 @@
 
 A macOS menu bar app for quickly adding and editing Google Keep notes and lists.
 
+<p>
+  <img src="Assets/screenshots/notes.png" width="300" alt="MaKeep's note list in the menu bar popover">
+  <img src="Assets/screenshots/editor.png" width="300" alt="Editing a checklist in MaKeep">
+</p>
+<p>
+  <img src="Assets/screenshots/settings.png" width="300" alt="MaKeep settings">
+  <img src="Assets/screenshots/sign-in.png" width="300" alt="MaKeep's sign-in screen">
+</p>
+
 ## Build & run
 
 ```sh
